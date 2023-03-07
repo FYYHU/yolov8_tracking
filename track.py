@@ -144,6 +144,7 @@ def run(
     #model.warmup(imgsz=(1 if pt else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile(), Profile())
     curr_frames, prev_frames = [None] * bs, [None] * bs
+    total_unique_ids = []
     for frame_idx, batch in enumerate(dataset):
         path, im, im0s, vid_cap, s = batch
         visualize = increment_path(save_dir / Path(path[0]).stem, mkdir=True) if visualize else False
@@ -240,6 +241,10 @@ def run(
                         cls = output[5]
                         conf = output[6]
 
+                        if id not in total_unique_ids:
+                            total_unique_ids.append(id)
+                        
+
                         if save_txt:
                             # to MOT format
                             bbox_left = output[0]
@@ -272,6 +277,8 @@ def run(
                 
             # Stream results
             im0 = annotator.result()
+            #put the total number of unique ids on the image
+            cv2.putText(im0, f"Total Unique IDs: {len(total_unique_ids)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             if show_vid:
                 if platform.system() == 'Linux' and p not in windows:
                     windows.append(p)
